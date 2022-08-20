@@ -231,7 +231,7 @@ public:
     volatile bool stopRequested;
     volatile bool pauseRequested;
     bool isRealtimeSyncMode;
-    bool isFasterThanRealtimeEnabled;
+    bool isSlowerThanRealtimeEnabled;
     bool needToUpdateSimBodyLists;
     bool hasActiveFreeBodies;
     bool recordCollisionData;
@@ -315,7 +315,7 @@ public:
         BodyItem* bodyItem, Link* link, const Vector3& attachmentPoint, const Vector3& endPoint);
     void setVirtualElasticStringForce();
     void onRealtimeSyncChanged(bool on);
-    void onFasterThanRealtimeEnabledChanged(bool on);
+    void onSlowerThanRealtimeEnabledChanged(bool on);
     bool onAllLinkPositionOutputModeChanged(bool on);
     void setSpecifiedRecordingTimeLength(double length);
     void doPutProperties(PutPropertyFunction& putProperty);
@@ -1134,7 +1134,7 @@ SimulatorItemImpl::SimulatorItemImpl(SimulatorItem* self)
     isDeviceStateOutputEnabled = true;
     isDoingSimulationLoop = false;
     isRealtimeSyncMode = true;
-    isFasterThanRealtimeEnabled = true;
+    isSlowerThanRealtimeEnabled = false;
     recordCollisionData = false;
 
     timeBar = TimeBar::instance();
@@ -1164,7 +1164,7 @@ SimulatorItemImpl::SimulatorItemImpl(SimulatorItem* self, const SimulatorItemImp
     isAllLinkPositionOutputMode = org.isAllLinkPositionOutputMode;
     isDeviceStateOutputEnabled = org.isDeviceStateOutputEnabled;
     isRealtimeSyncMode = org.isRealtimeSyncMode;
-    isFasterThanRealtimeEnabled = org.isFasterThanRealtimeEnabled;
+    isSlowerThanRealtimeEnabled = org.isSlowerThanRealtimeEnabled;
     recordCollisionData = org.recordCollisionData;
     controllerOptionString_ = org.controllerOptionString_;
 }
@@ -1254,9 +1254,9 @@ void SimulatorItem::setRealtimeSyncMode(bool on)
     impl->isRealtimeSyncMode = on;
 }
 
-void SimulatorItem::setFasterThanRealtimeEnabled(bool on)
+void SimulatorItem::setSlowerThanRealtimeEnabled(bool on)
 {
-    impl->isFasterThanRealtimeEnabled = on;
+    impl->isSlowerThanRealtimeEnabled = on;
 }
 
 void SimulatorItem::setDeviceStateOutputEnabled(bool on)
@@ -1865,7 +1865,13 @@ void SimulatorItemImpl::run()
                 buf[i] = oneStepTime;
 #endif
                 double diff = (double)compensatedSimulationTime - (elapsedTime + timer.elapsed());
-                if(isFasterThanRealtimeEnabled){
+                if(isSlowerThanRealtimeEnabled){
+                    if(diff >= 0.0){
+                        QThread::msleep(diff);
+                    } else if(diff < 0.0){
+                        compensatedSimulationTime += -diff;
+                    }
+                } else {
                     if(diff >= 1.0){
                         QThread::msleep(diff);
                     } else if(diff < 0.0){
@@ -1876,12 +1882,6 @@ void SimulatorItemImpl::run()
                         if(delayOverThresh > 0.0){
                             compensatedSimulationTime += delayOverThresh;
                         }
-                    }
-                } else {
-                    if(diff >= 0.0){
-                        QThread::msleep(diff);
-                    } else if(diff < 0.0){
-                        compensatedSimulationTime += -diff;
                     }
                 }
                 compensatedSimulationTime += dtms;
@@ -2547,9 +2547,9 @@ void SimulatorItemImpl::onRealtimeSyncChanged(bool on)
 }
 
 
-void SimulatorItemImpl::onFasterThanRealtimeEnabledChanged(bool on)
+void SimulatorItemImpl::onSlowerThanRealtimeEnabledChanged(bool on)
 {
-    isFasterThanRealtimeEnabled = on;
+    isSlowerThanRealtimeEnabled = on;
 }
 
 
@@ -2584,8 +2584,8 @@ void SimulatorItemImpl::doPutProperties(PutPropertyFunction& putProperty)
 
     putProperty(_("Sync with realtime"), isRealtimeSyncMode,
                 [&](bool on){ onRealtimeSyncChanged(on); return true; });
-    putProperty(_("Faster then realtime"), isFasterThanRealtimeEnabled,
-                [&](bool on){ onFasterThanRealtimeEnabledChanged(on); return true; });
+    putProperty(_("Slower then realtime"), isSlowerThanRealtimeEnabled,
+                [&](bool on){ onSlowerThanRealtimeEnabledChanged(on); return true; });
     putProperty(_("Time range"), timeRangeMode,
                 [&](int index){ return timeRangeMode.select(index); });
     putProperty(_("Time length"), specifiedTimeLength,
@@ -2619,7 +2619,7 @@ bool SimulatorItemImpl::store(Archive& archive)
         archive.write("frameRate", frameRateProperty);
     }
     archive.write("realtimeSync", isRealtimeSyncMode);
-    archive.write("fasterThanRealtime", isFasterThanRealtimeEnabled);
+    archive.write("slowerThanRealtime", isSlowerThanRealtimeEnabled);
     archive.write("recording", recordingMode.selectedSymbol(), DOUBLE_QUOTED);
     archive.write("timeRangeMode", timeRangeMode.selectedSymbol(), DOUBLE_QUOTED);
     archive.write("timeLength", specifiedTimeLength);
@@ -2698,7 +2698,7 @@ bool SimulatorItemImpl::restore(const Archive& archive)
         }
     }
     archive.read("realtimeSync", isRealtimeSyncMode);
-    archive.read("fasterThanRealtime", isFasterThanRealtimeEnabled);
+    archive.read("slowerThanRealtime", isSlowerThanRealtimeEnabled);
     archive.read("timeLength", specifiedTimeLength);
     self->setAllLinkPositionOutputMode(archive.get("allLinkPositionOutputMode", isAllLinkPositionOutputMode));
     archive.read("deviceStateOutput", isDeviceStateOutputEnabled);

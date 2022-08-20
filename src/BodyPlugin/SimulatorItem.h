@@ -123,7 +123,7 @@ public:
     Selection recordingMode() const;
     void setTimeRangeMode(int selection);
     void setRealtimeSyncMode(bool on);
-    void setFasterThanRealtimeEnabled(bool on);
+    void setSlowerThanRealtimeEnabled(bool on);
     void setDeviceStateOutputEnabled(bool on);
 
     bool isRecordingEnabled() const;
