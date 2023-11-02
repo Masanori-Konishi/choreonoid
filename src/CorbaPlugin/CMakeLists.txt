@@ -2,7 +2,8 @@
 
 #set(CMAKE_BUILD_TYPE Debug)
 
-option(BUILD_CORBA_PLUGIN "Build CORBA Plugin" OFF)
+# option(BUILD_CORBA_PLUGIN "Build CORBA Plugin" OFF)
+option(BUILD_CORBA_PLUGIN "Build CORBA Plugin" ON)
 
 if(NOT BUILD_CORBA_PLUGIN)
   return()

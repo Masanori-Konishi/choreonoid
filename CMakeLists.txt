@@ -312,7 +312,7 @@ else()
   option(ENABLE_PYTHON "Enable Python" ON)
 endif()
 
-option(USE_PYBIND11 "Use the pybind11 library to make python bindings" ON)
+option(USE_PYBIND11 "Use the pybind11 library to make python bindings" OFF)
 set(PYBIND11_DIR ${PYBIND11_DIR} CACHE PATH "The directory of the pybind11 library")
 if(USE_PYBIND11)
   set(USE_BOOST_PYTHON OFF)
@@ -322,7 +322,8 @@ endif()
 set(CNOID_USE_PYBIND11 ${USE_PYBIND11})
 set(CNOID_USE_BOOST_PYTHON ${USE_BOOST_PYTHON})
 
-option(USE_PYTHON3 "Use Python version 3 instead of version 2" ON)
+# option(USE_PYTHON3 "Use Python version 3 instead of version 2" ON)
+option(USE_PYTHON3 "Use Python version 3 instead of version 2" OFF)
 
 # for Config.h
 if(USE_PYTHON3)
@@ -648,7 +649,9 @@ if(MSVC)
 endif()
 
 # CORBA, omniORB
-option(ENABLE_CORBA "Enable CORBA related modules / plugins" OFF)
+# option(ENABLE_CORBA "Enable CORBA related modules / plugins" OFF)
+option(ENABLE_CORBA "Enable CORBA related modules / plugins" ON)
+option(BUILD_CORBA_PLUGIN "Build CORBA Plugin" ON)
 
 if(ENABLE_CORBA)
   # The OMNIDYNAMIC_XXX variables are used for storing the omniORB information
@@ -904,6 +907,9 @@ if(ENABLE_CORBA)
 endif(ENABLE_CORBA)
 
 # OpenRTM
+# option(BUILD_OPENRTM_PLUGIN "Building OpenRTMPlugin" OFF)
+option(BUILD_OPENRTM_PLUGIN "Building OpenRTMPlugin" ON)
+
 if(BUILD_OPENRTM_PLUGIN)
   find_package(OpenRTM REQUIRED CONFIG)
 
@@ -912,7 +918,7 @@ if(BUILD_OPENRTM_PLUGIN)
     list(APPEND OPENRTM_DEFINITIONS -DOPENRTM_VERSION12)
     list(APPEND OPENRTM_DEFINITIONS -Wno-deprecated)
 
-  elseif(OPENRTM_VERSION VERSION_EQUAL "1.1.2")
+  elseif(OPENRTM_VERSION VERSION_EQUAL "1.1.2"  OR OPENRTM_VERSION STREQUAL "1.1.0")
     list(APPEND OPENRTM_DEFINITIONS -DOPENRTM_VERSION11)
     # Remove extra "-I" from the elements of OPENRTM_INCLUDE_DIRS
     unset(include_dirs)
@@ -935,7 +941,8 @@ if(BUILD_OPENRTM_PLUGIN)
 
   set(IDL_INCLUDE_DIRS ${IDL_INCLUDE_DIRS} ${OPENRTM_INCLUDE_DIRS})
 
-  option(USE_BUILTIN_CAMERA_IMAGE_IDL "Enable this option when you run hrpsys-base on Choreonoid" OFF)
+  # option(USE_BUILTIN_CAMERA_IMAGE_IDL "Enable this option when you run hrpsys-base on Choreonoid" OFF)
+  option(USE_BUILTIN_CAMERA_IMAGE_IDL "Enable this option when you run hrpsys-base on Choreonoid" ON)
   if(USE_BUILTIN_CAMERA_IMAGE_IDL)
     list(APPEND OPENRTM_DEFINITIONS -DUSE_BUILTIN_CAMERA_IMAGE_IDL)
   else()

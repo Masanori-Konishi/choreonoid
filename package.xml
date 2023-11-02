@@ -25,6 +25,7 @@
   <depend>libjpeg</depend>
   <build_depend>libpng12-dev</build_depend>
   <build_depend>assimp-dev</build_depend>
+  <build_depend>openrtm_aist</build_depend>
   <exec_depend>assimp</exec_depend>
 
   <build_export_depend>qtbast5-dev</build_export_depend>
